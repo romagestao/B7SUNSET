@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard B7 SUNSET HOME</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --roma-verde: #152013;
+    --roma-terra: #B38251;
+    --roma-cinza: #867A5C;
+    --white: #FFFFFF;
+    --black: #000000;
+  }
+  
+  body { 
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+    background: linear-gradient(135deg, var(--roma-verde) 0%, #1a2f1f 100%);
+    padding: 20px;
+    color: var(--roma-verde);
+  }
+  
+  .dashboard { max-width: 1500px; margin: 0 auto; }
+  
+  .header { 
+    background: var(--white);
+    padding: 30px;
+    margin-bottom: 30px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .header h1 { 
+    font-size: 28px; 
+    font-weight: 600; 
+    margin-bottom: 4px;
+    color: var(--roma-verde);
+  }
+  
+  .header p { 
+    font-size: 13px; 
+    color: var(--roma-cinza);
+  }
+  
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 30px; }
+  .kpi-card { 
+    background: var(--white); 
+    padding: 22px; 
+    border-radius: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-left: 5px solid var(--roma-terra);
+  }
+  .kpi-card.critical { border-left-color: #D32F2F; }
+  .kpi-card.warning { border-left-color: var(--roma-cinza); }
+  .kpi-card h3 { font-size: 11px; color: var(--roma-cinza); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; font-weight: 600; }
+  .kpi-value { font-size: 28px; font-weight: bold; color: var(--roma-verde); }
+  .kpi-detail { font-size: 12px; color: var(--roma-cinza); margin-top: 8px; }
+  
+  .section { 
+    background: var(--white); 
+    padding: 30px; 
+    margin-bottom: 25px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  .section-title { 
+    font-size: 16px; 
+    font-weight: 700; 
+    margin-bottom: 25px; 
+    color: var(--roma-verde);
+    border-bottom: 3px solid var(--roma-terra);
+    padding-bottom: 12px;
+  }
+  
+  /* Disciplinas */
+  .discipline-row { 
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 18px; 
+    padding-bottom: 18px; 
+    border-bottom: 1px solid #ECECEC;
+  }
+  .discipline-row:last-child { border-bottom: none; }
+  
+  .disc-name { 
+    width: 180px; 
+    font-weight: 500; 
+    font-size: 13px; 
+    color: var(--roma-verde);
+  }
+  
+  .disc-bar-container { 
+    flex: 1; 
+    height: 24px; 
+    background: #F5F5F5; 
+    margin: 0 15px; 
+    overflow: hidden;
+    border: 1px solid #E0E0E0;
+  }
+  
+  .disc-bar { 
+    height: 100%; 
+    background: linear-gradient(90deg, var(--roma-terra) 0%, #9B7247 100%);
+    display: flex; 
+    align-items: center; 
+    justify-content: flex-end; 
+    padding-right: 8px; 
+    color: white; 
+    font-size: 11px; 
+    font-weight: bold;
+  }
+  
+  .disc-bar.complete { background: linear-gradient(90deg, #4CAF50 0%, #43A047 100%); }
+  .disc-bar.partial { background: linear-gradient(90deg, var(--roma-cinza) 0%, #766B5A 100%); }
+  .disc-bar.warning { background: linear-gradient(90deg, #FFA726 0%, #FB8C00 100%); }
+  
+  .disc-percent { 
+    width: 60px; 
+    text-align: right; 
+    font-weight: 700; 
+    color: var(--roma-terra);
+    font-size: 13px;
+  }
+  
+  /* Timeline */
+  .timeline { position: relative; padding-left: 20px; }
+  
+  .timeline-item { 
+    display: flex; 
+    margin-bottom: 28px; 
+    position: relative;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -35px;
+    top: 15px;
+    width: 2px;
+    height: calc(100% + 15px);
+    background: #E0E0E0;
+  }
+  
+  .timeline-item:last-child::before { display: none; }
+  
+  .timeline-marker { 
+    position: absolute;
+    left: -46px;
+    top: 0;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .timeline-dot { 
+    width: 24px; 
+    height: 24px; 
+    background: var(--white);
+    border: 3px solid var(--roma-terra);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px #F5F5F5;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .timeline-dot.done { 
+    border-color: #4CAF50;
+    background: #4CAF50;
+  }
+  
+  .timeline-dot.active { 
+    border-color: var(--roma-terra);
+    background: var(--roma-terra);
+  }
+  
+  .timeline-dot.critical { 
+    border-color: #D32F2F;
+    background: #D32F2F;
+  }
+  
+  .timeline-date { 
+    font-weight: 700; 
+    color: var(--roma-verde); 
+    font-size: 12px;
+    min-width: 70px;
+  }
+  
+  .timeline-content { 
+    background: #FAFAFA;
+    padding: 14px 16px; 
+    border-radius: 0;
+    border-left: 3px solid var(--roma-terra);
+    flex: 1;
+  }
+  
+  .timeline-content h4 { 
+    font-size: 13px; 
+    font-weight: 700; 
+    color: var(--roma-verde); 
+    margin-bottom: 4px;
+  }
+  
+  .timeline-content p { 
+    font-size: 12px; 
+    color: var(--roma-cinza);
+    line-height: 1.4;
+  }
+  
+  .timeline-content.done { 
+    border-left-color: #4CAF50;
+    background: #F1F8F4;
+  }
+  
+  .timeline-content.critical { 
+    border-left-color: #D32F2F;
+    background: #FDF1F0;
+  }
+  
+  /* Legal/Approvals Table */
+  .legal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  
+  .legal-table th {
+    background: var(--roma-cinza);
+    color: var(--white);
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border: none;
+  }
+  
+  .legal-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #ECECEC;
+    color: var(--roma-verde);
+  }
+  
+  .legal-table tbody tr:nth-child(even) {
+    background: #FAFAFA;
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 11px;
+  }
+  
+  .status-approved { background: #C8E6C9; color: #2E7D32; }
+  .status-pending { background: #FFF9C4; color: #F57F17; }
+  .status-review { background: #FFCCBC; color: #D84315; }
+  .status-waiting { background: #E1BEE7; color: #6A1B9A; }
+  
+  .protocol-col { font-family: 'Courier New', monospace; font-size: 11px; color: #555; }
+  
+  .days-badge {
+    background: var(--roma-terra);
+    color: var(--white);
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  
+  .days-badge.critical { background: #D32F2F; }
+  .days-badge.urgent { background: #F57C00; }
+  
+  /* Alert Boxes */
+  .alert-box { 
+    padding: 16px; 
+    margin-bottom: 14px; 
+    font-size: 13px; 
+    line-height: 1.6;
+    border-left: 5px solid var(--roma-terra);
+    background: #FFFBF7;
+  }
+  
+  .alert-box.critical { 
+    border-left-color: #D32F2F;
+    background: #FDF1F0;
+  }
+  
+  .alert-box.warning { 
+    border-left-color: var(--roma-cinza);
+    background: #FFFBF7;
+  }
+  
+  .alert-box strong { 
+    color: var(--roma-verde);
+    display: block;
+    margin-bottom: 4px;
+  }
+  
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+  @media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
+  
+  .summary-list { margin-left: 0; }
+  .summary-list li { 
+    margin-left: 20px; 
+    margin-bottom: 10px;
+    color: var(--roma-verde);
+    font-size: 13px;
+  }
+  
+  .summary-list strong { color: var(--roma-terra); }
+  
+  .footer { 
+    text-align: center; 
+    font-size: 12px; 
+    color: var(--roma-cinza); 
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #DDD;
+  }
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  
+  <div class="header">
+    <h1>📐 B7 SUNSET HOME</h1>
+    <p>Dashboard Executivo de Coordenação BIM | Atualizado em 17/07/2026</p>
+  </div>
+  
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <h3>📅 Fase Atual</h3>
+      <div class="kpi-value">ANTEPROJETO</div>
+      <div class="kpi-detail">Compatibilização 1 em andamento (96%)</div>
+    </div>
+    <div class="kpi-card">
+      <h3>⚡ Avanço Geral</h3>
+      <div class="kpi-value">73%</div>
+      <div class="kpi-detail">Anteprojeto: 73% | Próxima: Validações</div>
+    </div>
+    <div class="kpi-card warning">
+      <h3>🚨 Próximo Marco</h3>
+      <div class="kpi-value">3 dias</div>
+      <div class="kpi-detail">20/07 - Validações TACT</div>
+    </div>
+    <div class="kpi-card">
+      <h3>📊 Avanço Aprovativs</h3>
+      <div class="kpi-value">41%</div>
+      <div class="kpi-detail">PL Arquitetura entregue; demais em progresso</div>
+    </div>
+  </div>
+
+  <!-- Avanço por Disciplina -->
+  <div class="section">
+    <div class="section-title">📐 Avanço por Disciplina - Anteprojeto</div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Arquitetura</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar complete" style="width: 100%">100%</div>
+      </div>
+      <div class="disc-percent">✓ Entregue</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Estrutural</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar complete" style="width: 100%">100%</div>
+      </div>
+      <div class="disc-percent">✓ Entregue</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Preventivo Incêndio (PCI)</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar complete" style="width: 100%">100%</div>
+      </div>
+      <div class="disc-percent">✓ Entregue</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Elétrica e Lógica</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar complete" style="width: 100%">100%</div>
+      </div>
+      <div class="disc-percent">✓ Entregue</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Hidrossanitário</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar complete" style="width: 100%">100%</div>
+      </div>
+      <div class="disc-percent">✓ Entregue</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Climatização e Exaustão</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar complete" style="width: 100%">100%</div>
+      </div>
+      <div class="disc-percent">✓ Entregue</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Fundações</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar warning" style="width: 0%"></div>
+      </div>
+      <div class="disc-percent">Não iniciado</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Interiores</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar warning" style="width: 0%"></div>
+      </div>
+      <div class="disc-percent">Não iniciado</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">AP Paisagismo</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar warning" style="width: 0%"></div>
+      </div>
+      <div class="disc-percent">Não iniciado</div>
+    </div>
+    
+    <div class="discipline-row">
+      <div class="disc-name">⚙️ Compatibilização 1 - AP Instalações</div>
+      <div class="disc-bar-container">
+        <div class="disc-bar partial" style="width: 96%">96%</div>
+      </div>
+      <div class="disc-percent">Em progr. (17/07)</div>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <div class="section">
+    <div class="section-title">🚨 Alertas e Pontos de Atenção</div>
+    
+    <div class="alert-box critical">
+      <strong>⚠️ FASE NÃO AVANÇOU PARA PRÉ-EXECUTIVO</strong>
+      Compatibilização 1 (AP Instalações) em andamento (96%). Gatilho para PE: conclusão de compatibilização + Validações TACT (20-24/07). Sem esses 100%, não inicia PE.
+    </div>
+    
+    <div class="alert-box warning">
+      <strong>📌 Validações TACT - Marco Crítico</strong>
+      Data: 20-24/07/2026 (daqui 3 dias) | Responsável: TACT Engenharia<br>
+      Escopo: Revisão de 100% dos projetos de Anteprojeto (Arquitetura, Estrutura, Instalações + Compatibilização)
+    </div>
+    
+    <div class="alert-box warning">
+      <strong>📅 AP Fundações</strong>
+      Período previsto: 24/08 - 18/09/2026 | Status: Aguardando | Impacto: Sequência executiva de estrutura profunda
+    </div>
+    
+    <div class="alert-box">
+      <strong>📊 Nenhuma Comunicação Registrada (10-17/07)</strong>
+      Semana de transição entre fases. Recomendação: Validar alinhamento com todas as disciplinas na próxima semana.
+    </div>
+  </div>
+
+  <!-- Timeline Detalhada -->
+  <div class="section">
+    <div class="section-title">📆 Timeline de Marcos Críticos</div>
+    
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot active"></div>
+        </div>
+        <div class="timeline-content">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>17/07 - Compatibilização 1 - Término</h4>
+              <p>AP Instalações: Finalização prevista (~96% de avanço)</p>
+            </div>
+            <div class="timeline-date">17/07</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot critical"></div>
+        </div>
+        <div class="timeline-content critical">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>20-24/07 - Validações TACT</h4>
+              <p>Revisão de 100% dos projetos de Anteprojeto. Gatilho para início Pré-Executivo.</p>
+            </div>
+            <div class="timeline-date">20-24/07</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot critical"></div>
+        </div>
+        <div class="timeline-content critical">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>20/07 - Início PRÉ-EXECUTIVO</h4>
+              <p>PE Arquitetura inicia detalhamento | Duração: 25 dias (20/07 - 14/08)</p>
+            </div>
+            <div class="timeline-date">20/07</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot"></div>
+        </div>
+        <div class="timeline-content">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>27/07 - PE Estrutural</h4>
+              <p>Inicia detalhamento de estrutura | Duração: 25 dias (27/07 - 21/08)</p>
+            </div>
+            <div class="timeline-date">27/07</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot"></div>
+        </div>
+        <div class="timeline-content">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>24/08 - AP Fundações e Contenções</h4>
+              <p>Inicia anteprojeto das fundações profundas | Duração: 25 dias (24/08 - 18/09)</p>
+            </div>
+            <div class="timeline-date">24/08</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot critical"></div>
+        </div>
+        <div class="timeline-content critical">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>22/10 - Fim do Pré-Executivo</h4>
+              <p>Conclusão de detalhamento de todos os projetos | Validações finais TACT</p>
+            </div>
+            <div class="timeline-date">22/10</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="timeline-item">
+        <div class="timeline-marker">
+          <div class="timeline-dot"></div>
+        </div>
+        <div class="timeline-content">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4>20/07/27 - Início EXECUTIVO</h4>
+              <p>Detalhamento final e compatibilização executiva | Duração: 9 meses</p>
+            </div>
+            <div class="timeline-date">20/07/27</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Processo Legal e Aprovações -->
+  <div class="section">
+    <div class="section-title">📋 Situação dos Aprovativs - Processos Legais e Órgãos</div>
+    
+    <table class="legal-table">
+      <thead>
+        <tr>
+          <th style="width: 20%">Projeto/Processo</th>
+          <th style="width: 18%">Protocolo</th>
+          <th style="width: 15%">Órgão Responsável</th>
+          <th style="width: 14%">Status Atual</th>
+          <th style="width: 12%">Data 1º Protocolo</th>
+          <th style="width: 12%">Prazo Retorno</th>
+          <th style="width: 9%">Dias p/ Aprovação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background: #F1F8F4;">
+          <td><strong>Viabilidade Drenagem</strong></td>
+          <td class="protocol-col">PMF E 00085459/2026</td>
+          <td>PMF</td>
+          <td><span class="status-badge status-pending">1ª análise em andamento</span></td>
+          <td>31/03/2026</td>
+          <td>24/04/2026</td>
+          <td><span class="days-badge">108</span></td>
+        </tr>
+        <tr>
+          <td><strong>Licenciamento Ambiental</strong></td>
+          <td class="protocol-col">-</td>
+          <td>FLORAM</td>
+          <td><span class="status-badge status-review">Em andamento</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="days-badge">0</span></td>
+        </tr>
+        <tr>
+          <td><strong>Aprovação PL Elétrica</strong></td>
+          <td class="protocol-col">-</td>
+          <td>Celesc</td>
+          <td><span class="status-badge status-waiting">Aguardando projeto</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="days-badge">0</span></td>
+        </tr>
+        <tr>
+          <td><strong>Aprovação PL Hidrossanitário</strong></td>
+          <td class="protocol-col">-</td>
+          <td>Casan</td>
+          <td><span class="status-badge status-waiting">Aguardando projeto</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="days-badge">0</span></td>
+        </tr>
+        <tr>
+          <td><strong>Aprovação PL Preventivo</strong></td>
+          <td class="protocol-col">-</td>
+          <td>Bombeiros</td>
+          <td><span class="status-badge status-waiting">Aguardando projeto</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td><span class="days-badge">0</span></td>
+        </tr>
+        <tr style="background: #F5F5F5; font-weight: 600;">
+          <td colspan="7"><strong>Obs:</strong> PL = Projeto Legal | Celesc, Casan e Bombeiros aguardam envio de projetos legais (previstos em julho-agosto). Viabilidade Drenagem já com 108 dias de atraso na análise.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Resumo Executivo -->
+  <div class="section">
+    <div class="section-title">🎯 Resumo Executivo - Construtora TACT</div>
+    
+    <p style="margin-bottom: 16px; color: var(--roma-verde); line-height: 1.6;">
+      <strong style="color: var(--roma-terra);">Status Geral:</strong> Projeto em fase final de ANTEPROJETO. Compatibilização 1 (AP Instalações) em andamento (96%). Gatilho para Pré-Executivo: conclusão de Compatibilização 1 + Validações TACT (20-24/07).
+    </p>
+    
+    <p style="margin-bottom: 16px; color: var(--roma-verde); line-height: 1.6;">
+      <strong style="color: var(--roma-terra);">Avanço:</strong></p>
+      <ul class="summary-list">
+        <li><strong>Anteprojeto:</strong> 73% completo (8 de 8 disciplinas entregues; fundações/interiores ainda em início)</li>
+        <li><strong>Projetos Legais:</strong> 41% (PL Arquitetura entregue; hidro/elétrica/ambiental em progresso)</li>
+        <li><strong>Compatibilizações:</strong> 1 ativa (AP Instalações - 96% até 17/07)</li>
+      </ul>
+    
+    <p style="margin-bottom: 16px; margin-top: 16px; color: var(--roma-verde); line-height: 1.6;">
+      <strong style="color: var(--roma-terra);">Próximos 30 dias:</strong></p>
+      <ul class="summary-list">
+        <li>17/07 - Término Compatibilização 1</li>
+        <li>20-24/07 - Validações TACT (gatilho para PE)</li>
+        <li>20/07 - Início Pré-Executivo (PE Arq + PE Estrutural)</li>
+        <li>24/08 - AP Fundações (marco da estrutura)</li>
+      </ul>
+    
+    <p style="margin-bottom: 16px; margin-top: 16px; color: var(--roma-verde); line-height: 1.6;">
+      <strong style="color: var(--roma-terra);">Ações Recomendadas:</strong></p>
+      <ul class="summary-list">
+        <li>✓ Confirmar cronograma de validações TACT (20-24/07) com todas as disciplinas</li>
+        <li>✓ Preparar recursos para PE (PE Arq começa 20/07, PE Est em 27/07)</li>
+        <li>✓ Acompanhar projetos legais (Hidro, PCI, Elétrica em paralelo)</li>
+        <li>✓ Sincronizar equipes para Compatibilização 2 (Fundações) em 21/09</li>
+      </ul>
+  </div>
+
+  <div class="footer">
+    <p style="margin-bottom: 8px;"><strong>B7 SUNSET HOME | Dashboard de Coordenação BIM</strong></p>
+    <p>Roma Gestão de Projetos | Coordenação BIM<br>
+    Dados atualizados: 17/07/2026 às 09:30 | Próxima atualização: 21/07/2026 (pós Validações TACT)</p>
+  </div>
+
+</div>
+
+</body>
+</html>
