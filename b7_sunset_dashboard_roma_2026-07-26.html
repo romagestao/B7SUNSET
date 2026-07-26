@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B7 SUNSET HOME - Dashboard Executivo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .update-info {
+            color: #666;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+
+        .kpi-card.warning {
+            border-left-color: #ff9800;
+        }
+
+        .kpi-card.success {
+            border-left-color: #4caf50;
+        }
+
+        .kpi-card.danger {
+            border-left-color: #f44336;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .kpi-subtext {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .discipline-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .discipline-row:last-child {
+            border-bottom: none;
+        }
+
+        .discipline-name {
+            font-weight: 600;
+            color: #333;
+            min-width: 150px;
+        }
+
+        .discipline-stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .progress-container {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .percentage {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .alert {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+
+        .alert-critical {
+            background: #ffebee;
+            border-left-color: #f44336;
+            color: #c62828;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+            color: #e65100;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+            color: #1565c0;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            margin-bottom: 20px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #667eea;
+        }
+
+        .timeline-item.completed::before {
+            background: #4caf50;
+            box-shadow: 0 0 0 2px #4caf50;
+        }
+
+        .timeline-item.pending::before {
+            background: #ff9800;
+            box-shadow: 0 0 0 2px #ff9800;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-in-progress {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .status-pending {
+            background: #ffccbc;
+            color: #d84315;
+        }
+
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+
+        .summary-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 B7 SUNSET HOME - Dashboard Executivo</h1>
+            <div class="update-info">
+                Atualização: 26 de julho de 2026 às 04:12 | Versão R00 | Fase: PRÉ EXECUTIVO
+            </div>
+        </header>
+
+        <!-- KPI CARDS -->
+        <div class="kpi-grid">
+            <div class="kpi-card success">
+                <div class="kpi-label">Fase Atual</div>
+                <div class="kpi-value">PRÉ EXECUTIVO</div>
+                <div class="kpi-subtext">Iniciado em 20/07/2026</div>
+            </div>
+
+            <div class="kpi-card warning">
+                <div class="kpi-label">Avanço Geral</div>
+                <div class="kpi-value">42%</div>
+                <div class="kpi-subtext">Projeto completo (4 fases)</div>
+            </div>
+
+            <div class="kpi-card warning">
+                <div class="kpi-label">Próximo Marco</div>
+                <div class="kpi-value">14 AGO</div>
+                <div class="kpi-subtext">PE Arquitetura (encerramento)</div>
+            </div>
+
+            <div class="kpi-card danger">
+                <div class="kpi-label">Pontos de Atenção</div>
+                <div class="kpi-value">3</div>
+                <div class="kpi-subtext">Revisões pendentes</div>
+            </div>
+        </div>
+
+        <!-- AVANÇO POR FASE -->
+        <div class="section">
+            <h2>📈 Avanço por Fase do Projeto</h2>
+
+            <div class="discipline-row">
+                <div class="discipline-name">✓ Estudo Preliminar</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 84%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">84%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">✓ Anteprojeto</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">80%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">⏳ Pré Executivo</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 3%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">3%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">⭕ Executivo</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AVANÇO DA FASE PE (PRÉ EXECUTIVO) -->
+        <div class="section">
+            <h2>🎯 Avanço Disciplinas - Pré Executivo</h2>
+
+            <div class="discipline-row">
+                <div class="discipline-name">✓ PE Estrutural</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">100%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">⏳ PE Arquitetura</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 15%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">15%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">⏳ PE Elétrica</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 25%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">25%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">⏳ PE Hidrossanitário</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">0%</div>
+                </div>
+            </div>
+
+            <div class="discipline-row">
+                <div class="discipline-name">⏳ PE Climatização</div>
+                <div class="discipline-stats">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="percentage">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERTAS E PONTOS DE ATENÇÃO -->
+        <div class="section">
+            <h2>⚠️ Pontos de Atenção e Alertas</h2>
+
+            <div class="alert alert-critical">
+                <strong>CRÍTICO:</strong> Revisão da planta de cargas - Fundações
+                <br><span style="font-size: 11px;">Alterações de cotas topográficas dos vizinhos e revisão da contenção lateral. Necessário ajustes pontuais. Status: Aguardando revisão BornSales.</span>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>ATENÇÃO:</strong> Compatibilização de instalações em andamento
+                <br><span style="font-size: 11px;">Análise entre disciplinas: arquitetura, estrutura, hidrossanitário, elétrico e climatização. Apontamentos recebidos de Nayara Lopes (20/07).</span>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>ATENÇÃO:</strong> Validações TACT agendadas
+                <br><span style="font-size: 11px;">Próximas validações de PE: 26 ago - 01 set. Apontamentos do Construflow em aberto para revisão pela Tact Engenharia.</span>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>INFO:</strong> PE Arquitetura liberada
+                <br><span style="font-size: 11px;">Disciplina de arquitetura iniciou trabalhos em 24/07. Prazo de encerramento: 14 de agosto de 2026.</span>
+            </div>
+        </div>
+
+        <!-- TIMELINE DE MARCOS -->
+        <div class="section">
+            <h2>📅 Timeline de Marcos Críticos (Próximos 30 dias)</h2>
+
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="timeline-date">21-24 JUL (Concluído)</div>
+                    <div class="timeline-desc">✓ PE Estrutural finalizado</div>
+                </div>
+
+                <div class="timeline-item pending">
+                    <div class="timeline-date">27 JUL - 14 AGO (Em andamento)</div>
+                    <div class="timeline-desc">⏳ PE Arquitetura (Avanço: 15%)</div>
+                </div>
+
+                <div class="timeline-item pending">
+                    <div class="timeline-date">20 JUL - 14 AGO (Em andamento)</div>
+                    <div class="timeline-desc">⏳ PE Elétrica (Avanço: 25%)</div>
+                </div>
+
+                <div class="timeline-item pending">
+                    <div class="timeline-date">03-07 AGO (Aguardando)</div>
+                    <div class="timeline-desc">⭕ PE Estrutural - Revisão</div>
+                </div>
+
+                <div class="timeline-item pending">
+                    <div class="timeline-date">26 AGO - 01 SET (Previsto)</div>
+                    <div class="timeline-desc">⭕ Validações TACT - Pré Executivo</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENDÊNCIAS DO CONSTRUFLOW -->
+        <div class="section">
+            <h2>📋 Apontamentos Construflow Pendentes de Revisão</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descrição</th>
+                        <th>Disciplina</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>4911</td>
+                        <td>Definição de controle de acesso no térreo</td>
+                        <td>Arquitetura</td>
+                        <td><span class="status-badge status-pending">Aguardando Tact</span></td>
+                    </tr>
+                    <tr>
+                        <td>6793</td>
+                        <td>Definir [pendência específica]</td>
+                        <td>Estrutura</td>
+                        <td><span class="status-badge status-pending">Aguardando Tact</span></td>
+                    </tr>
+                    <tr>
+                        <td>9350</td>
+                        <td>Ajustes de degraus das escadas</td>
+                        <td>Estrutura</td>
+                        <td><span class="status-badge status-in-progress">Em análise</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- RESUMO EXECUTIVO -->
+        <div class="section">
+            <h2>📝 Resumo Executivo</h2>
+
+            <div class="summary-box">
+                <strong>Situação Geral:</strong> Projeto em dia com cronograma. Transição da fase de Anteprojeto (80% concluído) para Pré Executivo (3% iniciado).
+
+                <p style="margin-top: 10px;"><strong>Últimos 7 dias:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>✓ PE Estrutural finalizado (100%)</li>
+                    <li>✓ PE Arquitetura liberada e iniciada (15%)</li>
+                    <li>✓ PE Elétrica em andamento (25%)</li>
+                    <li>⚠️ Revisão de planta de cargas (Fundações)</li>
+                    <li>⚠️ Compatibilização de instalações em análise</li>
+                </ul>
+
+                <p style="margin-top: 10px;"><strong>Próximos 30 dias (críticos):</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>26 JUL - 14 AGO: PE Arquitetura deve ser encerrada</li>
+                    <li>03-07 AGO: Revisão PE Estrutural</li>
+                    <li>26 AGO - 01 SET: Validações TACT (marco importante)</li>
+                    <li>Conclusão de compatibilização de instalações</li>
+                </ul>
+
+                <p style="margin-top: 10px;"><strong>Ações recomendadas:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Acompanhar avanço PE Arquitetura (meta: 100% até 14/08)</li>
+                    <li>Resolver pendências do Construflow com Tact (ID 4911, 6793)</li>
+                    <li>Finalizar revisão de planta de cargas</li>
+                    <li>Preparar materiais para validações TACT de 26 ago</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Relatório atualizado automaticamente | B7 SUNSET HOME - Roma Gestão de Projetos</p>
+            <p>Dados coletados de: Cronograma XLS | Gmail (últimos 7 dias) | Google Calendar</p>
+        </div>
+    </div>
+</body>
+</html>
